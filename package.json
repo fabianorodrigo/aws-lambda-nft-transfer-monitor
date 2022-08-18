@@ -1,0 +1,23 @@
+{
+    "name": "replaced-by-user-input",
+    "description": "replaced-by-user-input",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.150.0",
+        "@aws-sdk/util-dynamodb": "^3.153.0",
+        "dotenv": "^16.0.1",
+        "ethers": "^5.6.9"
+    },
+    "devDependencies": {
+        "@babel/preset-env": "^7.18.10",
+        "jest": "^26.6.3",
+        "shelljs": "^0.8.5"
+    },
+    "scripts": {
+        "build": "sam build",
+        "test": "export DYNAMODB_ENDPOINT=http://172.17.0.2:8000 && jest",
+        "start": "sam local start-api",
+        "deploy": "sam deploy --guided"
+    }
+}
