@@ -11,10 +11,10 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceRoot}/node_modules/jest-cli/bin/jest.js",
+            "program": "${workspaceRoot}/node_modules/jest/bin/jest.js",
             "console": "integratedTerminal",
             "env": {
-                "DYNAMODB_ENDPOINT": "http://localhost:8000"
+                "DYNAMODB_ENDPOINT": "http://172.17.0.2:8000"
               }
         }
     ]

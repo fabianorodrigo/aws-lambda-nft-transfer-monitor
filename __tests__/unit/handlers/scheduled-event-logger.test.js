@@ -2,10 +2,12 @@
 const shelljs = require("shelljs");
 const scheduledEventLogger = require("../../../src/handlers/scheduled-event-logger");
 const NFTEventsDB = require("../../../src/services/aws/dynamodb/model/NFTEventsDB");
+const ParametersDB = require("../../../src/services/aws/dynamodb/model/ParametersDB");
 const connect = require("../../../src/services/aws/dynamodb/connection");
 
 describe("Test for Scheduled NFT Transfer Event Detection", function () {
   let nftEventsDB;
+  let parametersDB;
   let dbclient;
 
   beforeAll(async function () {
@@ -21,8 +23,12 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
     // wait for docker to start
     await new Promise((resolve) => setTimeout(resolve, 2000));
     nftEventsDB = new NFTEventsDB();
+    parametersDB = new ParametersDB();
     // If process.env.DYNAMODB_ENDPOINT exists, then use it to connect to DynamoDB.
-    dbclient = await connect(nftEventsDB, process.env.DYNAMODB_ENDPOINT);
+    dbclient = await connect(
+      [parametersDB, nftEventsDB],
+      process.env.DYNAMODB_ENDPOINT
+    );
   });
   afterAll(async function () {
     // run docker amazon/dynamodb-local
@@ -48,6 +54,9 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
       detail: {},
     };
 
+    // expect params does not exist;
+    expect(await parametersDB.get(dbclient, "lastBlockChecked")).toBeNull();
+
     // At first invocation, the DynamoDB table is empty.
     let allEvents = await nftEventsDB.getAll(dbclient);
     expect(allEvents.length).toBe(0);
@@ -56,7 +65,16 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
 
     // At first invocation, the DynamoDB table is empty.
     allEvents = await nftEventsDB.getAll(dbclient);
+
     expect(allEvents.length).toBe(2);
+
+    const lastBlockCheckedFinal = await parametersDB.get(
+      dbclient,
+      "lastBlockChecked"
+    );
+    // expect params does not exist
+    expect(lastBlockCheckedFinal).not.toEqual(null);
+    console.log("###################", lastBlockCheckedFinal);
 
     // Verify that console.info has been called with the expected payload
     //expect(console.info).toHaveBeenCalledWith(JSON.stringify(payload));

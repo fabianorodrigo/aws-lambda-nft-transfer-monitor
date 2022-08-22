@@ -1,4 +1,5 @@
 const {PutItemCommand, GetItemCommand} = require("@aws-sdk/client-dynamodb");
+const {unmarshall} = require("@aws-sdk/util-dynamodb");
 const DynamoEntity = require("./dinamoEntity");
 
 module.exports = class NFTEventsDB extends DynamoEntity {
@@ -25,7 +26,7 @@ module.exports = class NFTEventsDB extends DynamoEntity {
     if (!dbclient) throw new Error(`dbclient is required`);
     if (!id) throw new Error(`ID is required`);
     try {
-      return await dbclient.send(
+      const result = await dbclient.send(
         new GetItemCommand({
           TableName: this.TableName,
           Key: {
@@ -34,9 +35,13 @@ module.exports = class NFTEventsDB extends DynamoEntity {
           ProjectionExpression: "blockNumber,from,to,tokenId",
         })
       );
+      if (result?.Item) {
+        return unmarshall(result.Item);
+      }
     } catch (e) {
       console.error(e.message, e.stack);
     }
+    return null;
   }
 
   /**
