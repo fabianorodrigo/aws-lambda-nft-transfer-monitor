@@ -12,17 +12,6 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
   let lastBlockCheckedFinal;
 
   beforeAll(async function () {
-    // run docker amazon/dynamodb-local detached and with automatic container removal
-    console.log(
-      shelljs.exec(
-        "docker run -d --rm --name dynamoLocal amazon/dynamodb-local",
-        {
-          silent: true,
-        }
-      ).stdout
-    );
-    // wait for docker to start
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     nftEventsDB = new NFTEventsDB();
     parametersDB = new ParametersDB();
     // If process.env.DYNAMODB_ENDPOINT exists, then use it to connect to DynamoDB.
@@ -30,12 +19,6 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
       [parametersDB, nftEventsDB],
       process.env.DYNAMODB_ENDPOINT
     );
-  });
-  afterAll(async function () {
-    // run docker amazon/dynamodb-local
-    shelljs.exec("docker stop dynamoLocal", {
-      silent: true,
-    });
   });
 
   // This test invokes the scheduled-event-logger Lambda function and verifies that the events were inserted into DynamoDb tabble

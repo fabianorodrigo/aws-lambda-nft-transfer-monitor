@@ -12,12 +12,13 @@
     "devDependencies": {
         "@babel/core": ">=7.13.0 <8.0.0",
         "@babel/preset-env": "^7.18.10",
-        "jest": "^26.6.3",
-        "shelljs": "^0.8.5"
+        "jest": "^26.6.3"
     },
     "scripts": {
         "build": "sam build",
-        "test": "export DYNAMODB_ENDPOINT=http://172.17.0.2:8000 && jest",
+        "startDynamoLocal": "docker run -d --rm --name dynamoLocal amazon/dynamodb-local && sleep 1",
+        "stopDynamoLocal": "docker stop dynamoLocal",
+        "test": "npm run startDynamoLocal && DYNAMODB_ENDPOINT=http://172.17.0.2:8000 jest ; npm run stopDynamoLocal",
         "start": "sam local start-api",
         "deploy": "sam deploy --guided"
     }
