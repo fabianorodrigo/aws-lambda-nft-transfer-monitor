@@ -9,6 +9,7 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
   let nftEventsDB;
   let parametersDB;
   let dbclient;
+  let lastBlockCheckedFinal;
 
   beforeAll(async function () {
     // run docker amazon/dynamodb-local detached and with automatic container removal
@@ -36,8 +37,9 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
       silent: true,
     });
   });
-  // This test invokes the scheduled-event-logger Lambda function and verifies that the received payload is logged
-  it("Verifies the payload is logged", async (done) => {
+
+  // This test invokes the scheduled-event-logger Lambda function and verifies that the events were inserted into DynamoDb tabble
+  it("Should insert events into DynamoDB at the first time ", async () => {
     // Mock console.log statements so we can verify them. For more information, see
     // https://jestjs.io/docs/en/mock-functions.html
     //console.info = jest.fn();
@@ -68,17 +70,25 @@ describe("Test for Scheduled NFT Transfer Event Detection", function () {
 
     expect(allEvents.length).toBe(2);
 
-    const lastBlockCheckedFinal = await parametersDB.get(
+    lastBlockCheckedFinal = await parametersDB.get(
       dbclient,
       "lastBlockChecked"
     );
     // expect params does not exist
     expect(lastBlockCheckedFinal).not.toEqual(null);
-    console.log("###################", lastBlockCheckedFinal);
 
     // Verify that console.info has been called with the expected payload
     //expect(console.info).toHaveBeenCalledWith(JSON.stringify(payload));
+  });
+  it("Should not insert events into DynamoDB when there is no new events", async () => {
+    // expect params is equal to the to the block number of the last event
+    const lbc = await parametersDB.get(dbclient, "lastBlockChecked");
+    expect(lbc.value).toBe(lastBlockCheckedFinal.value);
 
-    done();
+    await scheduledEventLogger.scheduledEventLoggerHandler({}, null);
+
+    // expect params keeps being the block number of the last event
+    const lbc2 = await parametersDB.get(dbclient, "lastBlockChecked");
+    expect(lbc2.value).toBe(lastBlockCheckedFinal.value);
   });
 });

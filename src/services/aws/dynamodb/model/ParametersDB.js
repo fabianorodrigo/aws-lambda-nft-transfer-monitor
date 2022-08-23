@@ -66,7 +66,7 @@ module.exports = class ParametersDB extends DynamoEntity {
             },
           })
         );
-        console.log("PutItemCommand Result: ", putResult);
+        // console.log("PutItemCommand Result: ", putResult);
       } else {
         const updtResult = await dbclient.send(
           new UpdateItemCommand({
@@ -74,14 +74,17 @@ module.exports = class ParametersDB extends DynamoEntity {
             Key: {
               name: {S: name},
             },
-            UpdateExpression: "set value = :v",
-            ExpressionAttributeValues: {
-              ":v": value,
+            UpdateExpression: "set #value = :v",
+            ExpressionAttributeNames: {
+              "#value": "value",
             },
-            ReturnValues: "UPDATED_NEW",
+            ExpressionAttributeValues: {
+              ":v": {S: value},
+            },
+            ReturnValues: "ALL_NEW",
           })
         );
-        console.log("UpdateItemCommand Result: ", updtResult);
+        // console.log("UpdateItemCommand Result: ", updtResult);
       }
     } catch (e) {
       console.error(e.message, e.stack);

@@ -22,6 +22,8 @@ exports.scheduledEventLoggerHandler = async (event, context) => {
   let lastBlock = await parametersDB.get(dbclient, "lastBlockChecked");
   if (lastBlock == null) {
     lastBlock = parseInt(process.env.FROM_BLOCK);
+  } else {
+    lastBlock = parseInt(lastBlock.value);
   }
   const FROM_BLOCK = lastBlock + 1;
 
@@ -42,10 +44,15 @@ exports.scheduledEventLoggerHandler = async (event, context) => {
     }
   }
 
-  // Persist the last block checked
-  await parametersDB.save(dbclient, "lastBlockChecked", lastBlock.toString());
+  if (transferEvents.length > 0) {
+    // Persist the last block checked
+    await parametersDB.save(dbclient, "lastBlockChecked", lastBlock.toString());
+  } else {
+    console.log(`No TRANSFER EVENTS detected since block ${FROM_BLOCK}`);
+  }
 
   // All log statements are written to CloudWatch by default. For more information, see
   // https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-logging.html
   //console.info(JSON.stringify(event));
+  return true;
 };
